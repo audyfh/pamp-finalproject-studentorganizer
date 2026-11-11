@@ -13,7 +13,7 @@ class TasksListPage extends StatefulWidget {
   State<TasksListPage> createState() => _TasksListPageState();
 }
 
-class _TasksListPageState extends Stxate<TasksListPage> {
+class _TasksListPageState extends State<TasksListPage> {
   String _filter = 'Semua';
 
   List<TaskUiData> get _filteredTasks {
