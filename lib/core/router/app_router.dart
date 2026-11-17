@@ -65,24 +65,24 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/tasks',
-              builder: (context, state) => const TaskListPage(),
+              builder: (context, state) => const TasksListPage(),
               routes: [
                 GoRoute(
                   path: 'new',
                   parentNavigatorKey: rootNavigatorKey,
-                  builder: (context, state) => const TaskFormPage(),
+                  builder: (context, state) => const TasksFormPage(),
                 ),
                 GoRoute(
                   path: ':id',
                   parentNavigatorKey: rootNavigatorKey,
-                  builder: (context, state) => TaskDetailPage(
+                  builder: (context, state) => TasksDetailPage(
                     taskId: state.pathParameters['id']!,
                   ),
                   routes: [
                     GoRoute(
                       path: 'edit',
                       parentNavigatorKey: rootNavigatorKey,
-                      builder: (context, state) => TaskFormPage(
+                      builder: (context, state) => TasksFormPage(
                         taskId: state.pathParameters['id'],
                       ),
                     ),
