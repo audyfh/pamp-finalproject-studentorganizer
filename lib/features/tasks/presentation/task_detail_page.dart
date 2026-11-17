@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import 'task_ui_data.dart';
+import '../Data/task_ui_data.dart';
 import 'task_ui_widgets.dart';
 
 class TasksDetailPage extends StatelessWidget {
