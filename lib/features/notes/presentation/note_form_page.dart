@@ -49,6 +49,18 @@ class _NoteFormPageState extends State<NoteFormPage> {
     } else if (!widget.isEdit) {
       _setDate(DateTime.now());
     }
+    _loadCourses();
+  }
+
+  Future<void> _loadCourses() async {
+    try {
+      await _repo.fetchCourses();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal memuat daftar mata kuliah.')),
+      );
+    }
   }
 
   @override
@@ -83,7 +95,16 @@ class _NoteFormPageState extends State<NoteFormPage> {
       builder: (_) => const _AddCourseDialog(),
     );
     if (name == null || name.trim().isEmpty) return;
-    _repo.addCourse(name);
+    try {
+      await _repo.addCourse(name);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal menambah mata kuliah. Coba lagi.')),
+      );
+      return;
+    }
+    if (!mounted) return;
     setState(() => _course = name.trim());
   }
 
@@ -120,11 +141,17 @@ class _NoteFormPageState extends State<NoteFormPage> {
         ),
       );
       context.pop();
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       setState(() => _isSaving = false);
       messenger.showSnackBar(
-        const SnackBar(content: Text('Gagal menyimpan catatan. Coba lagi.')),
+        SnackBar(
+          content: Text(
+            e is NoteAuthException
+                ? 'Anda belum login. Silakan login terlebih dahulu.'
+                : 'Gagal menyimpan catatan. Coba lagi.',
+          ),
+        ),
       );
     }
   }
@@ -137,9 +164,9 @@ class _NoteFormPageState extends State<NoteFormPage> {
         body: Center(
           child: Text(
             'Catatan tidak ditemukan.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
           ),
         ),
       );
@@ -152,7 +179,9 @@ class _NoteFormPageState extends State<NoteFormPage> {
       body: ListenableBuilder(
         listenable: _repo,
         builder: (context, _) {
-          final courses = _repo.courses;
+          // Pilihan saat ini tetap dimasukkan agar dropdown tidak error
+          // selama daftar mata kuliah masih dimuat dari Supabase.
+          final courses = {..._repo.courses, ?_course}.toList()..sort();
           return Form(
             key: _formKey,
             child: ListView(
@@ -176,9 +205,7 @@ class _NoteFormPageState extends State<NoteFormPage> {
                   key: ValueKey(_course),
                   initialValue: _course,
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Mata Kuliah *',
-                  ),
+                  decoration: const InputDecoration(labelText: 'Mata Kuliah *'),
                   items: [
                     for (final c in courses)
                       DropdownMenuItem(value: c, child: Text(c)),
@@ -291,9 +318,7 @@ class _AddCourseDialogState extends State<_AddCourseDialog> {
           controller: _controller,
           autofocus: true,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(
-            labelText: 'Nama Mata Kuliah *',
-          ),
+          decoration: const InputDecoration(labelText: 'Nama Mata Kuliah *'),
           validator: (value) => (value == null || value.trim().isEmpty)
               ? 'Nama mata kuliah wajib diisi'
               : null,

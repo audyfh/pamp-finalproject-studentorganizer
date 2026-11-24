@@ -47,16 +47,18 @@ class Note {
       id: json['id'] as String,
       title: json['title'] as String,
       content: json['content'] as String,
-      courseName: (json['courses'] as Map<String, dynamic>?)?['name'] as String?,
+      courseName:
+          (json['courses'] as Map<String, dynamic>?)?['name'] as String?,
       noteDate: DateTime.parse(json['note_date'] as String),
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      // `timestamptz` dikirim dalam UTC; tampilkan dalam zona waktu perangkat.
+      createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
+      updatedAt: DateTime.parse(json['updated_at'] as String).toLocal(),
     );
   }
 
   /// Payload untuk insert/update. `user_id`, `created_at`, dan `updated_at`
-  /// diisi oleh database (default / trigger). `course_id` perlu di-resolve
-  /// dari `courseName` oleh repository saat backend terpasang.
+  /// diisi oleh database (default / trigger). `course_id` di-resolve dari
+  /// `courseName` oleh repository.
   Map<String, dynamic> toJson() {
     return {
       'title': title.trim(),
