@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
-import '../data/models/activity_model.dart';
-import '../providers/activity_controller.dart';
+import '../domain/entities/activity_entity.dart';
+import 'providers/activity_provider.dart';
 
 class ActivityFormPage extends StatefulWidget {
   const ActivityFormPage({
     super.key,
     this.activityId,
-    this.controller,
   });
 
   final String? activityId;
-  final ActivityController? controller;
 
   bool get isEdit => activityId != null;
 
@@ -22,9 +21,6 @@ class ActivityFormPage extends StatefulWidget {
 
 class _ActivityFormPageState extends State<ActivityFormPage> {
   final _formKey = GlobalKey<FormState>();
-
-  late final ActivityController _controller =
-      widget.controller ?? ActivityController.instance;
 
   late final TextEditingController _nameController;
   late final TextEditingController _locationController;
@@ -41,7 +37,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
   void initState() {
     super.initState();
     final existing = widget.activityId != null
-        ? _controller.findById(widget.activityId!)
+        ? context.read<ActivityProvider>().findById(widget.activityId!)
         : null;
 
     _nameController = TextEditingController(text: existing?.name ?? '');
@@ -151,7 +147,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
       );
       return false;
     }
-    if (ActivityModel.compareTime(_endTime!, _startTime!) <= 0) {
+    if (ActivityEntity.compareTime(_endTime!, _startTime!) <= 0) {
       setState(
         () => _dateTimeError = 'Waktu selesai harus setelah waktu mulai.',
       );
@@ -169,7 +165,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
     setState(() => _isSaving = true);
 
     try {
-      final model = ActivityModel(
+      final entity = ActivityEntity(
         id: widget.activityId ?? '',
         name: _nameController.text.trim(),
         activityDate: _selectedDate!,
@@ -182,10 +178,11 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
             : _descriptionController.text.trim(),
       );
 
+      final provider = context.read<ActivityProvider>();
       if (widget.isEdit) {
-        await _controller.updateActivity(model);
+        await provider.updateActivity(entity);
       } else {
-        await _controller.addActivity(model);
+        await provider.addActivity(entity);
       }
 
       if (mounted) {
@@ -264,7 +261,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
             const SizedBox(height: 8),
             _RoundedPickerButton(
               value: _selectedDate != null
-                  ? ActivityModel.formatDateId(_selectedDate!)
+                  ? ActivityEntity.formatDateId(_selectedDate!)
                   : 'Pilih tanggal',
               icon: Icons.calendar_today_rounded,
               onTap: _pickDate,
@@ -280,7 +277,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
                       const SizedBox(height: 8),
                       _RoundedPickerButton(
                         value: _startTime != null
-                            ? '${ActivityModel.formatTimeId(_startTime!)} WIB'
+                            ? '${ActivityEntity.formatTimeId(_startTime!)} WIB'
                             : 'Pilih jam',
                         icon: Icons.schedule_rounded,
                         onTap: _pickStartTime,
@@ -297,7 +294,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
                       const SizedBox(height: 8),
                       _RoundedPickerButton(
                         value: _endTime != null
-                            ? '${ActivityModel.formatTimeId(_endTime!)} WIB'
+                            ? '${ActivityEntity.formatTimeId(_endTime!)} WIB'
                             : 'Pilih jam',
                         icon: Icons.schedule_rounded,
                         onTap: _pickEndTime,

@@ -1,13 +1,13 @@
-import '../../data/models/activity_model.dart';
+import '../entities/activity_entity.dart';
 
 abstract class ActivityRepository {
-  Future<List<ActivityModel>> fetchAll();
+  Future<List<ActivityEntity>> fetchAll();
 
-  Future<ActivityModel?> fetchById(String id);
+  Future<ActivityEntity?> fetchById(String id);
 
-  Future<ActivityModel> insert(ActivityModel activity);
+  Future<ActivityEntity> insert(ActivityEntity activity);
 
-  Future<ActivityModel> update(ActivityModel activity);
+  Future<ActivityEntity> update(ActivityEntity activity);
 
   Future<void> delete(String id);
 }

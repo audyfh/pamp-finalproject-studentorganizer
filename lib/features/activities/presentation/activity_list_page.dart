@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
-import '../data/models/activity_model.dart';
-import '../providers/activity_controller.dart';
+import '../domain/entities/activity_entity.dart';
+import 'providers/activity_provider.dart';
 import 'widgets/activity_card.dart';
 
 class ActivityListPage extends StatefulWidget {
-  const ActivityListPage({super.key, this.controller});
-
-  final ActivityController? controller;
+  const ActivityListPage({super.key});
 
   @override
   State<ActivityListPage> createState() => _ActivityListPageState();
 }
 
 class _ActivityListPageState extends State<ActivityListPage> {
-  late final ActivityController _controller =
-      widget.controller ?? ActivityController.instance;
-
   DateTime? _selectedDate;
 
   @override
   void initState() {
     super.initState();
-    _controller.ensureLoaded();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ActivityProvider>().ensureLoaded();
+      }
+    });
   }
 
   static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
@@ -31,11 +31,13 @@ class _ActivityListPageState extends State<ActivityListPage> {
   static bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
-  List<DateTime> _buildDateStrip(List<ActivityModel> activities) {
+  List<DateTime> _buildDateStrip(List<ActivityEntity> activities) {
     final today = _dateOnly(DateTime.now());
     final set = <DateTime>{
-      for (int i = -2; i <= 10; i++) today.add(Duration(days: i)),
-      for (final a in activities) _dateOnly(a.activityDate),
+      for (int i = 0; i <= 10; i++) today.add(Duration(days: i)),
+      for (final a in activities)
+        if (!_dateOnly(a.activityDate).isBefore(today))
+          _dateOnly(a.activityDate),
     };
     final sorted = set.toList()..sort();
     return sorted;
@@ -48,15 +50,14 @@ class _ActivityListPageState extends State<ActivityListPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: ListenableBuilder(
-          listenable: _controller,
-          builder: (context, _) {
-            if (_controller.isLoading && _controller.activities.isEmpty) {
+        child: Consumer<ActivityProvider>(
+          builder: (context, provider, _) {
+            if (provider.isLoading && provider.activities.isEmpty) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            if (_controller.errorMessage != null &&
-                _controller.activities.isEmpty) {
+            if (provider.errorMessage != null &&
+                provider.activities.isEmpty) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
@@ -64,13 +65,13 @@ class _ActivityListPageState extends State<ActivityListPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        _controller.errorMessage!,
+                        provider.errorMessage!,
                         textAlign: TextAlign.center,
                         style: textTheme.bodyLarge,
                       ),
                       const SizedBox(height: 16),
                       OutlinedButton(
-                        onPressed: _controller.loadActivities,
+                        onPressed: provider.loadActivities,
                         child: const Text('Muat Ulang'),
                       ),
                     ],
@@ -79,7 +80,7 @@ class _ActivityListPageState extends State<ActivityListPage> {
               );
             }
 
-            final allActivities = _controller.activities;
+            final allActivities = provider.activities;
             final dateStrip = _buildDateStrip(allActivities);
             final activeDates = {
               for (final a in allActivities) _dateOnly(a.activityDate),
@@ -97,7 +98,7 @@ class _ActivityListPageState extends State<ActivityListPage> {
             final past = filtered.where((a) => a.isPast(now)).toList();
 
             return RefreshIndicator(
-              onRefresh: _controller.loadActivities,
+              onRefresh: provider.loadActivities,
               child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/activities/presentation/activity_detail_page.dart';
 import '../../features/activities/presentation/activity_form_page.dart';
@@ -27,7 +28,20 @@ final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: '/',
-  // shortcut: redirect auth belum diaktifkan sampai Supabase diinisialisasi, aktifkan saat mengerjakan FR-AUTH-03
+  redirect: (context, state) {
+    Session? session;
+    try {
+      session = Supabase.instance.client.auth.currentSession;
+    } catch (_) {
+      // Abaikan redirect saat Supabase belum diinisialisasi (mis. widget test).
+      return null;
+    }
+    final isAuthRoute =
+        state.matchedLocation == '/login' || state.matchedLocation == '/register';
+    if (session == null && !isAuthRoute) return '/login';
+    if (session != null && isAuthRoute) return '/';
+    return null;
+  },
   routes: [
     // ===== Rute Autentikasi & Profil =====
     GoRoute(
