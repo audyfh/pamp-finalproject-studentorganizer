@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../data/models/activity_model.dart';
+import '../../domain/entities/activity_entity.dart';
 
 class ActivityCardPalette {
   const ActivityCardPalette({
@@ -49,7 +49,7 @@ class ActivityCardPalette {
     border: Color(0xFFE2E8F0),
   );
 
-  static ActivityCardPalette resolve(ActivityModel activity, {int? index}) {
+  static ActivityCardPalette resolve(ActivityEntity activity, {int? index}) {
     if (activity.isPast()) return pastPalette;
     final seed = index ?? activity.id.hashCode.abs();
     return palettes[seed % palettes.length];
@@ -64,7 +64,7 @@ class ActivityCard extends StatelessWidget {
     this.colorIndex,
   });
 
-  final ActivityModel activity;
+  final ActivityEntity activity;
   final VoidCallback onTap;
   final int? colorIndex;
 

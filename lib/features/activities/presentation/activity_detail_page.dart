@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
-import '../providers/activity_controller.dart';
+import 'providers/activity_provider.dart';
 import 'widgets/activity_card.dart';
 
 class ActivityDetailPage extends StatelessWidget {
   const ActivityDetailPage({
     super.key,
     required this.activityId,
-    this.controller,
   });
 
   final String activityId;
-  final ActivityController? controller;
-
-  ActivityController get _controller =>
-      controller ?? ActivityController.instance;
 
   Future<void> _confirmDelete(BuildContext context) async {
     final confirmed = await showDialog<bool>(
@@ -48,22 +44,31 @@ class ActivityDetailPage extends StatelessWidget {
     );
 
     if (confirmed == true && context.mounted) {
-      await _controller.deleteActivity(activityId);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kegiatan berhasil dihapus')),
-        );
-        context.pop();
+      try {
+        await context.read<ActivityProvider>().deleteActivity(activityId);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Kegiatan berhasil dihapus')),
+          );
+          context.pop();
+        }
+      } catch (_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Gagal menghapus kegiatan. Silakan coba lagi.'),
+            ),
+          );
+        }
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _controller,
-      builder: (context, _) {
-        final activity = _controller.findById(activityId);
+    return Consumer<ActivityProvider>(
+      builder: (context, provider, _) {
+        final activity = provider.findById(activityId);
 
         if (activity == null) {
           return Scaffold(
