@@ -70,7 +70,14 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
     if (confirmed != true || !context.mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
-    await _repo.delete(id);
+    try {
+      await _repo.delete(id);
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Gagal menghapus catatan. Coba lagi.')),
+      );
+      return;
+    }
     if (!context.mounted) return;
     messenger.showSnackBar(
       const SnackBar(content: Text('Catatan berhasil dihapus')),
@@ -86,9 +93,9 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
         body: Center(
           child: Text(
             'Catatan tidak ditemukan.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
           ),
         ),
       );
@@ -144,8 +151,8 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
                     Text(
                       '${_index + 1} / ${_ids.length} · Geser untuk catatan lain',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -198,7 +205,10 @@ class _NoteDetailView extends StatelessWidget {
                         color: AppColors.textSecondary,
                       ),
                       const SizedBox(width: AppSpacing.xs),
-                      Text(NoteFormatters.fullDate(note.noteDate), style: small),
+                      Text(
+                        NoteFormatters.fullDate(note.noteDate),
+                        style: small,
+                      ),
                     ],
                   ),
                 ],

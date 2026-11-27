@@ -84,7 +84,7 @@ class _TasksListPageState extends State<TasksListPage> {
                 : ListView.separated(
                     padding: AppSpacing.screenPadding,
                     itemCount: tasks.length,
-                    separatorBuilder: (_, __) =>
+                    separatorBuilder: (_, _) =>
                         const SizedBox(height: AppSpacing.sm),
                     itemBuilder: (context, index) {
                       final task = tasks[index];

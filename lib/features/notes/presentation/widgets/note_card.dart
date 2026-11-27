@@ -93,9 +93,9 @@ class CourseChip extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: AppColors.onPrimaryContainer,
-              fontWeight: FontWeight.w600,
-            ),
+          color: AppColors.onPrimaryContainer,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

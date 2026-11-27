@@ -51,6 +51,12 @@ class _NoteListPageState extends State<NoteListPage> {
         _loading = false;
         _error = null;
       });
+    } on NoteAuthException {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = 'Anda belum login. Silakan login untuk melihat catatan.';
+      });
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -102,10 +108,7 @@ class _NoteListPageState extends State<NoteListPage> {
       return _MessageView(
         icon: Icons.cloud_off_outlined,
         title: _error!,
-        action: FilledButton(
-          onPressed: _load,
-          child: const Text('Coba lagi'),
-        ),
+        action: FilledButton(onPressed: _load, child: const Text('Coba lagi')),
       );
     }
 
@@ -116,8 +119,7 @@ class _NoteListPageState extends State<NoteListPage> {
         final courses = <String>{
           for (final n in all)
             if (n.courseName != null) n.courseName!,
-        }.toList()
-          ..sort();
+        }.toList()..sort();
         // Filter dibatalkan otomatis bila mata kuliahnya sudah tidak punya catatan.
         final activeCourse = courses.contains(_course) ? _course : null;
         final filtered = _filter(all, activeCourse);
@@ -206,10 +208,8 @@ class _NoteListPageState extends State<NoteListPage> {
         padding: AppSpacing.screenPadding,
         itemCount: filtered.length,
         separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-        itemBuilder: (context, index) => NoteCard(
-          note: filtered[index],
-          onTap: () => open(filtered[index]),
-        ),
+        itemBuilder: (context, index) =>
+            NoteCard(note: filtered[index], onTap: () => open(filtered[index])),
       );
     }
 
@@ -268,8 +268,8 @@ class _MessageView extends StatelessWidget {
                         title,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                       if (action != null) ...[
                         const SizedBox(height: AppSpacing.md),
