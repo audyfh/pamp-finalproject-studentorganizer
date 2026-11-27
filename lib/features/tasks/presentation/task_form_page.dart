@@ -157,7 +157,7 @@ class _TasksFormPageState extends State<TasksFormPage> {
             ),
             const SizedBox(height: AppSpacing.md),
             DropdownButtonFormField<String>(
-              value: _status,
+              initialValue: _status,
               decoration: const InputDecoration(
                 labelText: 'Status Pengerjaan',
                 prefixIcon: Icon(Icons.flag_outlined),
